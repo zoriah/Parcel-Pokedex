@@ -1,46 +1,9 @@
-// Container, in dem die Pokémon-Karten hinzugefügt werden sollen
+const favoritePokemons = JSON.parse(localStorage.getItem('favorites'));
+// console.log(typeof favoritePokemons)
 const pokemonContainer = document.getElementById('pokemon-container');
-//const favoritePokemons = JSON.parse(localStorage.getItem('favorites'))
-const favoritesData = JSON.parse(localStorage.getItem('favorites')) || {};
-let searchFlag = false;
-let searched;
-// console.log(typeof document.getElementById("pokesearch").value === "number")
 
-//input
-const pokemonSearch = document.getElementById('pokesearch');
+let favoriteButtonFlag = true;
 
-pokemonSearch.addEventListener('input', function () {
-  if (pokemonSearch.value === '') {
-    searchFlag = false;
-    //displayPokemons()
-  } else {
-    searchFlag = true;
-  }
-  console.log(pokemonSearch.value);
-  pokemonContainer.innerHTML = '';
-  //displayPokemons(pokemonSearch.value);
-});
-
-const searchBtn = document.getElementById('searchBtn');
-
-searchBtn.classList.add(
-  'bg-blue-500',
-  'hover:bg-blue-700',
-  'text-white',
-  'font-bold',
-  'py-2',
-  'px-4',
-  'rounded'
-);
-
-searchBtn.onclick = (y) => {
-  console.log('btn geklicked');
-  console.log(pokemonSearch.value);
-  displayPokemons(pokemonSearch.value);
-  searchFlag = false;
-};
-
-// Funktion, um die Daten eines einzelnen Pokémon von der API abzurufen
 async function fetchPokemon(id) {
   if (id === undefined) {
     return;
@@ -50,29 +13,10 @@ async function fetchPokemon(id) {
     const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
     const pokemon = await response.json(); // Umwandlung der Antwort in ein JSON-Objekt
     // Die Daten des Pokémon werden zurückgegeben
-    console.log(pokemon);
     return pokemon;
   } catch (error) {
     // Fehlerbehandlung, falls die API-Anfrage fehlschlägt
     console.error('Error fetching pokemons', error);
-  }
-}
-
-async function fetchByName(pokemonName) {
-  if (pokemonName === '') {
-    return;
-  }
-  try {
-    // Abruf der Pokémon-Daten anhand der ID
-    const response = await fetch(
-      `https://pokeapi.co/api/v2/pokemon/${pokemonName}`
-    );
-    const pokemon = await response.json(); // Umwandlung der Antwort in ein JSON-Objekt
-    // Die Daten des Pokémon mit dem Namen wird zurückgegeben
-    return pokemon;
-  } catch (error) {
-    // Fehlerbehandlung, falls die API-Anfrage fehlschlägt
-    console.error('Error fetching pokemonName', error);
   }
 }
 
@@ -87,15 +31,6 @@ function removeItemFromFavorites(pokemonName) {
   );
 
   localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-
-  /*if (favorites.includes(pokemonName)) {
-        favorites = favorites.filter(x => x != pokemonName);
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-        console.log(`${pokemonName}was deleted`);
-    }
-    else {
-        console.log('it does not exist');
-    }*/
 }
 
 //Bahman
@@ -118,13 +53,24 @@ function addToFavorites(pokemonName) {
       `Pokémon mit dem Namen ${pokemonName} ist bereits in der Favoritenliste.`
     );
   }
+}
 
-  /*if (!favorites.includes(pokemonName)) {
-        favorites.push(pokemonName); // Name zur Liste hinzufügen
-        localStorage.setItem('favorites', JSON.stringify(favorites)); // Favoritenliste speichern
-    } else {
-        console.log(`Pokémon mit dem Namen ${pokemonName} ist bereits in der Favoritenliste.`);
-    }*/
+function getPokemonByName(pokemonName) {
+  const favorites = JSON.parse(localStorage.getItem('favorites')) || {};
+
+  const pokemon = favorites.find((fav) => fav.name === pokemonName);
+
+  return pokemon || null;
+}
+
+function addNoteToFavorite(selectedPokemon) {
+  const favorites = JSON.parse(localStorage.getItem('favorites')) || {};
+
+  const updatedFavorites = favorites.map((fav) =>
+    fav.name === selectedPokemon.name ? selectedPokemon : fav
+  );
+
+  localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
 }
 
 function pokemonCardCreator(pokemon) {
@@ -187,13 +133,7 @@ function pokemonCardCreator(pokemon) {
     'text-gray-500'
   );
   favoriteButton.textContent = '★';
-
-  const isFavorited = Array.isArray(favoritesData)
-    ? favoritesData.some((item) => item.name === pokemon.name)
-    : false;
-  if (isFavorited) {
-    favoriteButton.style.color = 'gold';
-  }
+  favoriteButton.style.color = 'gold';
 
   // favorite Button click event
   favoriteButton.addEventListener('click', () => {
@@ -251,42 +191,101 @@ function pokemonCardCreator(pokemon) {
     1
   )} m | Weight: ${(pokemon.weight / 10).toFixed(1)} kg`;
 
+  // ----- Personal note section
+  const noteDiv = document.createElement('div');
+  noteDiv.classList.add('text-sm', 'mb-4', 'text-left');
+
+  // Load favorites from localStorage
+  const favoritesData = JSON.parse(localStorage.getItem('favorites')) || {};
+
+  selectedPokemon = getPokemonByName(pokemon.name);
+  console.log(`> 168 selected ${selectedPokemon.name}`);
+  if (!selectedPokemon.noteFlag) {
+    // Show input if no note exists
+    const noteLabel = document.createElement('label');
+    noteLabel.textContent = 'Add a Note:';
+    noteLabel.classList.add('block', 'font-semibold', 'mb-1');
+
+    const noteInput = document.createElement('textarea');
+    noteInput.classList.add('w-full', 'border', 'rounded', 'p-2', 'text-sm');
+    noteInput.placeholder = 'Write your personal note here...';
+    noteInput.style.height = '60px';
+
+    const saveNoteButton = document.createElement('button');
+    saveNoteButton.textContent = 'Save Note';
+    saveNoteButton.classList.add(
+      'bg-blue-500',
+      'text-white',
+      'px-3',
+      'py-1',
+      'rounded',
+      'mt-2',
+      'hover:bg-blue-700',
+      'text-sm'
+    );
+
+    // Save note on button click
+    saveNoteButton.addEventListener('click', () => {
+      const note = noteInput.value.trim();
+      if (note) {
+        selectedPokemon = getPokemonByName(pokemon.name);
+        // Update localStorage with the new note
+        selectedPokemon.note = note;
+        selectedPokemon.noteFlag = true;
+        addNoteToFavorite(selectedPokemon);
+
+        // Show the saved note
+        noteDiv.innerHTML = `<p><strong>Note:</strong> ${note}</p>`;
+      } else {
+        alert('Please enter a valid note.');
+      }
+    });
+
+    noteDiv.appendChild(noteLabel);
+    noteDiv.appendChild(noteInput);
+    noteDiv.appendChild(saveNoteButton);
+  } else {
+    // Show saved note if it exists
+    noteDiv.innerHTML = `<p><strong>Note:</strong> ${selectedPokemon.note}</p>`;
+  }
+
   pokemonCard.appendChild(header);
   pokemonCard.appendChild(pokeTypeUndfavorite);
   pokemonCard.appendChild(imageDiv);
   pokemonCard.appendChild(statsDiv);
   pokemonCard.appendChild(dimensionsDiv);
   pokemonCard.appendChild(abilitiesDiv);
+  // Append to card
+  pokemonCard.appendChild(noteDiv);
 
   return pokemonCard;
 }
 
-// YAKUP Kalkan
-// Funktion, um Pokémon-Karten anzuzeigen
-async function displayPokemons(searched) {
-  console.log(searched);
+// Save Pokémon to favorites (if not already there)
+const saveToFavorites = () => {
+  if (!favoritesData[pokemon.name]) {
+    favoritesData[pokemon.name] = {
+      name: pokemon.name,
+      note: null,
+      hasNote: false,
+    };
+    localStorage.setItem('favorites', JSON.stringify(favoritesData));
+  }
+};
 
-  if (searchFlag) {
-    console.log(searchFlag);
-    // Abrufen der Pokémon-Daten für die aktuelle ID
-    const pokemon = await fetchByName(searched);
-    console.log(pokemon);
-    if (pokemon) {
-      pokemonContainer.appendChild(pokemonCardCreator(pokemon));
-    }
-  } else {
-    // Schleife, um die ersten 150 Pokémon (ID: 1 bis 150) zu durchlaufen
-    for (let i = 1; i <= 150; i++) {
-      // Abrufen der Pokémon-Daten für die aktuelle ID
-      const pokemon = await fetchPokemon(i);
-
+async function displayPokemons() {
+  const pokemons = favoritePokemons.map((pokemon) =>
+    fetchPokemon(pokemon.name)
+  );
+  // Schleife, um die favoritePokemons auszulesen
+  pokemons.forEach((pokemon) => {
+    pokemon.then((pokemon) => {
       // Nur fortfahren, wenn die Daten erfolgreich abgerufen wurden
       if (pokemon) {
-        // Erstellen einer Karte für das Pokémon
         pokemonContainer.appendChild(pokemonCardCreator(pokemon));
       }
-    }
-  }
+    });
+  });
 }
 
-displayPokemons(pokemonSearch);
+displayPokemons();
