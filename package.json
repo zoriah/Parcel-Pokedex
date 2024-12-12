@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "clear": "npm run clean && npm run dev",
     "clean": "rm -rf .parcel-cache",
-    "dev": "parcel src/index.html"
+    "dev": "parcel src/index.html --open"
   },
   "keywords": [],
   "author": "",

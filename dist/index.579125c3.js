@@ -4,24 +4,34 @@ const pokemonContainer = document.getElementById('pokemon-container');
 const favoritesData = JSON.parse(localStorage.getItem('favorites')) || {};
 let searchFlag = false;
 let searched;
-// console.log(typeof document.getElementById("pokesearch").value === "number")
 //input
 const pokemonSearch = document.getElementById('pokesearch');
-pokemonSearch.addEventListener('input', function() {
-    if (pokemonSearch.value === '') searchFlag = false;
-    else searchFlag = true;
-    console.log(pokemonSearch.value);
-    pokemonContainer.innerHTML = '';
-//displayPokemons(pokemonSearch.value);
-});
 const searchBtn = document.getElementById('searchBtn');
+searchBtn.addEventListener('click', ()=>{
+    pokemonContainer.innerHTML = '';
+    const searchValue = pokemonSearch.value;
+    // console.log(searchValue);
+    displayPokemons(searchValue);
+});
+// pokemonSearch.addEventListener('input', function () {
+//   if (pokemonSearch.value === '') {
+//     // searchFlag = false;
+//     displayPokemons();
+//   } else {
+//     searchFlag = true;
+//   }
+//   const searchValue = pokemonSearch.value.toUpperCase();
+//   console.log(searchValue);
+//   pokemonContainer.innerHTML = '';
+//   displayPokemons(pokemonSearch.value);
+// });
 searchBtn.classList.add('bg-blue-700', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
-searchBtn.onclick = (y)=>{
-    console.log('btn geklicked');
-    console.log(pokemonSearch.value);
-    displayPokemons(pokemonSearch.value);
-    searchFlag = false;
-};
+// searchBtn.onclick = (y) => {
+//   console.log('btn geklicked');
+//   console.log(pokemonSearch.value);
+//   displayPokemons(pokemonSearch.value);
+//   searchFlag = false;
+// };
 // Funktion, um die Daten eines einzelnen Pokémon von der API abzurufen
 async function fetchPokemon(id) {
     if (id === undefined) return;
@@ -30,7 +40,7 @@ async function fetchPokemon(id) {
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
         const pokemon = await response.json(); // Umwandlung der Antwort in ein JSON-Objekt
         // Die Daten des Pokémon werden zurückgegeben
-        console.log(pokemon);
+        // console.log(pokemon);
         return pokemon;
     } catch (error) {
         // Fehlerbehandlung, falls die API-Anfrage fehlschlägt
@@ -166,23 +176,18 @@ function pokemonCardCreator(pokemon) {
 }
 // YAKUP Kalkan
 // Funktion, um Pokémon-Karten anzuzeigen
-async function displayPokemons(searched) {
-    console.log(searched);
-    if (searchFlag) {
-        console.log(searchFlag);
-        // Abrufen der Pokémon-Daten für die aktuelle ID
-        const pokemon = await fetchByName(searched);
-        console.log(pokemon);
+async function displayPokemons(searchQuery = '') {
+    const pokemonValue = parseInt(pokemonSearch.value);
+    console.log("noa: " + typeof pokemonValue);
+    if (searchQuery) {
+        const pokemon = isNaN(searchQuery) ? await fetchByName(searchQuery) : await fetchPokemon(searchQuery);
         if (pokemon) pokemonContainer.appendChild(pokemonCardCreator(pokemon));
-    } else // Schleife, um die ersten 150 Pokémon (ID: 1 bis 150) zu durchlaufen
-    for(let i = 1; i <= 150; i++){
-        // Abrufen der Pokémon-Daten für die aktuelle ID
+        else console.error("Pok\xe9mon not found.");
+    } else for(let i = 1; i <= 150; i++){
         const pokemon = await fetchPokemon(i);
-        // Nur fortfahren, wenn die Daten erfolgreich abgerufen wurden
-        if (pokemon) // Erstellen einer Karte für das Pokémon
-        pokemonContainer.appendChild(pokemonCardCreator(pokemon));
+        if (pokemon) pokemonContainer.appendChild(pokemonCardCreator(pokemon));
     }
 }
-displayPokemons(pokemonSearch);
+displayPokemons("");
 
 //# sourceMappingURL=index.579125c3.js.map
