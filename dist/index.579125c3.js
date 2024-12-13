@@ -1,7 +1,7 @@
 // Container, in dem die Pokémon-Karten hinzugefügt werden sollen
 const pokemonContainer = document.getElementById('pokemon-container');
 //const favoritePokemons = JSON.parse(localStorage.getItem('favorites'))
-const favoritesData = JSON.parse(localStorage.getItem('favorites')) || {};
+const favoritesData = JSON.parse(localStorage.getItem('favorites')) || [];
 let searchFlag = false;
 let searched;
 //input
@@ -10,21 +10,12 @@ const searchBtn = document.getElementById('searchBtn');
 searchBtn.addEventListener('click', ()=>{
     pokemonContainer.innerHTML = '';
     const searchValue = pokemonSearch.value;
-    // console.log(searchValue);
     displayPokemons(searchValue);
 });
-// pokemonSearch.addEventListener('input', function () {
-//   if (pokemonSearch.value === '') {
-//     // searchFlag = false;
-//     displayPokemons();
-//   } else {
-//     searchFlag = true;
-//   }
-//   const searchValue = pokemonSearch.value.toUpperCase();
-//   console.log(searchValue);
-//   pokemonContainer.innerHTML = '';
-//   displayPokemons(pokemonSearch.value);
-// });
+pokemonSearch.addEventListener('input', function() {
+    if (pokemonSearch.value.toLowerCase().trim() === '') // searchFlag = false;
+    displayPokemons();
+});
 searchBtn.classList.add('bg-blue-700', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
 // searchBtn.onclick = (y) => {
 //   console.log('btn geklicked');
@@ -33,11 +24,11 @@ searchBtn.classList.add('bg-blue-700', 'hover:bg-blue-600', 'text-white', 'font-
 //   searchFlag = false;
 // };
 // Funktion, um die Daten eines einzelnen Pokémon von der API abzurufen
-async function fetchPokemon(id) {
+async function fetchPokemonById(id) {
     if (id === undefined) return;
     try {
         // Abruf der Pokémon-Daten anhand der ID
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`);
         const pokemon = await response.json(); // Umwandlung der Antwort in ein JSON-Objekt
         // Die Daten des Pokémon werden zurückgegeben
         // console.log(pokemon);
@@ -51,7 +42,7 @@ async function fetchByName(pokemonName) {
     if (pokemonName === '') return;
     try {
         // Abruf der Pokémon-Daten anhand der ID
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}/`);
         const pokemon = await response.json(); // Umwandlung der Antwort in ein JSON-Objekt
         // Die Daten des Pokémon mit dem Namen wird zurückgegeben
         return pokemon;
@@ -66,14 +57,7 @@ function removeItemFromFavorites(pokemonName) {
     favorites = favorites ? JSON.parse(favorites) : [];
     const updatedFavorites = favorites.filter((items)=>items.name !== pokemonName);
     localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-/*if (favorites.includes(pokemonName)) {
-        favorites = favorites.filter(x => x != pokemonName);
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-        console.log(`${pokemonName}was deleted`);
-    }
-    else {
-        console.log('it does not exist');
-    }*/ }
+}
 //Bahman
 function addToFavorites(pokemonName) {
     let favorites = localStorage.getItem('favorites');
@@ -177,14 +161,18 @@ function pokemonCardCreator(pokemon) {
 // YAKUP Kalkan
 // Funktion, um Pokémon-Karten anzuzeigen
 async function displayPokemons(searchQuery = '') {
-    const pokemonValue = parseInt(pokemonSearch.value);
-    console.log("noa: " + typeof pokemonValue);
+    pokemonContainer.innerHTML = ''; // Leeren Sie den Container zu Beginn
+    const pokemonValue = parseInt(pokemonSearch.value.toLowerCase().trim());
+    // console.log("noa: " + typeof pokemonValue)
+    // console.log("noa: " + pokemonValue)
     if (searchQuery) {
-        const pokemon = isNaN(searchQuery) ? await fetchByName(searchQuery) : await fetchPokemon(searchQuery);
+        const isId = isNaN(searchQuery) && searchQuery > 0;
+        const pokemon = isId ? await fetchPokemonById(searchQuery) // Fetch by ID
+         : await fetchByName(searchQuery); // Fetch by name
         if (pokemon) pokemonContainer.appendChild(pokemonCardCreator(pokemon));
         else console.error("Pok\xe9mon not found.");
     } else for(let i = 1; i <= 150; i++){
-        const pokemon = await fetchPokemon(i);
+        const pokemon = await fetchPokemonById(i);
         if (pokemon) pokemonContainer.appendChild(pokemonCardCreator(pokemon));
     }
 }

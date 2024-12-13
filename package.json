@@ -2,10 +2,12 @@
   "name": "parcel-test",
   "version": "1.0.0",
   "main": "index.js",
+  "source": "src/index.html",
   "scripts": {
     "clear": "npm run clean && npm run dev",
     "clean": "rm -rf .parcel-cache",
-    "dev": "parcel src/index.html --open"
+    "dev": "parcel src/index.html --open",
+    "build": "parcel build ./src/index.html"
   },
   "keywords": [],
   "author": "",
