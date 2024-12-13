@@ -179,8 +179,8 @@ function pokemonCardCreator(pokemon) {
         <p><strong>Abilities:</strong></p>
         <ul>
             ${pokemon.abilities
-              .map((ability) => `<li>- ${ability.ability.name}</li>`)
-              .join('')}
+      .map((ability) => `<li>- ${ability.ability.name}</li>`)
+      .join('')}
         </ul>
     `;
 
